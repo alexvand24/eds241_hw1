@@ -1,0 +1,88 @@
+---
+title: "EDS241: Assignment 1"
+author: "Alex Vand"
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+output: 
+  pdf_document:
+    toc: false
+    number_sections: yes
+header-includes:
+  - \setlength{\parindent}{1em}
+  - \usepackage{float}
+--- 
+  
+``` {r setup, echo = FALSE, message = FALSE, warning = FALSE}
+
+# set default chunk options
+knitr::opts_chunk$set(fig.width = 4, fig.height = 3, 
+                      echo = TRUE, message = FALSE, warning = FALSE)
+
+# load packages
+library(tidyverse)
+```
+
+
+```{r}
+# load raw data
+data_raw <- read.csv(here::here("CES4.csv"))
+
+# clean data
+data <- data_raw %>%
+          janitor::clean_names() %>% 
+          select(i_census_tract,
+                 total_population,
+                 california_county,
+                 low_birth_weight,
+                 pm2_5,
+                 poverty)
+  
+```
+
+
+
+### (a) What is the average concentration of PM2.5 across all census tracts in California?
+
+```{r}
+avg_pm2_5 <- mean(data$pm2_5)
+
+print(paste((round(avg_pm2_5, 2)), "micrograms per cubic meter"))
+```
+
+
+### (b) What county has the highest level of poverty in California?
+
+```{r}
+high_poverty <- data$california_county[which.max(data$poverty)]
+
+print(high_poverty)
+```
+
+
+### (c) Make a histogram depicting the distribution of percent low birth weight and PM2.5.
+
+```{r}
+ggplot(data = data, mapping = aes(x = low_birth_weight)) +
+  geom_histogram()
+```
+
+```{r}
+ggplot(data = data, mapping = aes(x = pm2_5)) +
+  geom_histogram()
+```
+
+
+### (d) Estimate a OLS regression of LowBirthWeight on PM25. Report the estimated slope
+coefficient and its heteroskedasticity-robust standard error. Interpret the estimated slope
+coefficient. Is the effect of PM25 on LowBirthWeight statistically significant at the 5%?
+
+### (e) Suppose a new air quality policy is expected to reduce PM2.5 concentration by 2
+micrograms per cubic meters. Predict the new average value of LowBirthWeight and
+derive its 95% confidence interval. Interpret the 95% confidence interval.
+
+### (f) Add the variable Poverty as an explanatory variable to the regression in (d). Interpret the estimated coefficient on Poverty. What happens to the estimated coefficient on PM25,compared to the regression in (d). Explain.
+
+### (g) From the regression in (f), test the null hypothesis that the effect of PM2.5 is equal to the effect of Poverty
+
+
+
+

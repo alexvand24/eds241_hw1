@@ -19,6 +19,7 @@ knitr::opts_chunk$set(fig.width = 4, fig.height = 3,
 
 # load packages
 library(tidyverse)
+library(estimatr)
 ```
 
 
@@ -75,13 +76,82 @@ ggplot(data = data, mapping = aes(x = pm2_5)) +
 coefficient and its heteroskedasticity-robust standard error. Interpret the estimated slope
 coefficient. Is the effect of PM25 on LowBirthWeight statistically significant at the 5%?
 
+```{r}
+model <- lm(formula = low_birth_weight ~ pm2_5, data = data)
+model
+```
+
+```{r}
+model_robust <- lm_robust(formula = low_birth_weight ~ pm2_5, data = data)
+summary(model_robust)
+```
+
+```{r}
+print(paste("For every 1% increase in low birth weight,",
+            "there is an increase in ambient PM2.5 concentrations of",
+            round(model_robust$coefficients[2], 4),
+            "micrograms per cubic meter.",
+            "Yes; the effect of PM2.5 on LowBirthWeight is",
+            "statistically significant at the 5% level."))
+```
+
+
 ### (e) Suppose a new air quality policy is expected to reduce PM2.5 concentration by 2
 micrograms per cubic meters. Predict the new average value of LowBirthWeight and
 derive its 95% confidence interval. Interpret the 95% confidence interval.
 
+```{r}
+# point estimate?
+point_est = mean(data$pm2_5) - 2
+
+crit_val = qnorm(0.025, lower.tail=FALSE)
+
+# standard error wrong here...
+se <- sqrt((sd(data$low_birth_weight)^2 / data$n[3] +
+           (sd(data$pm2_5)^2 / data$n[2])))
+
+n1 = data %>% filter(region == "North Central") %>% count()
+n2 = data %>% filter(region == "South") %>% count()
+s1 = data %>% filter(region == "North Central") %>% summarize(sd(Frost, na.rm = TRUE))
+s2 = data %>% filter(region == "South") %>% summarize(sd(Frost, na.rm = TRUE))
+SE = as.numeric(sqrt(s1^2/n1 + s2^2/n2))
+
+ci_lower = round(point_est - crit_val*se, 2)
+ci_upper = round(point_est + crit_val*se, 2)
+
+print(paste0("95% probability that the interval [", ci_lower, ", ", ci_upper, "] contains the new average value of LowBirthWeight."))
+```
+
+
+```{r}
+t.test(pm2_5 ~ low_birth_weight, data = data, conf.level = 0.95)
+```
+
+
+
+
+
 ### (f) Add the variable Poverty as an explanatory variable to the regression in (d). Interpret the estimated coefficient on Poverty. What happens to the estimated coefficient on PM25,compared to the regression in (d). Explain.
 
-### (g) From the regression in (f), test the null hypothesis that the effect of PM2.5 is equal to the effect of Poverty
+```{r}
+model_robust_poverty <- lm_robust(formula = low_birth_weight ~ pm2_5 + poverty, data = data)
+summary(model_robust_poverty)
+```
+
+```{r}
+print(paste("For every 1% increase in low birth weight,",
+            "there is a",
+            round(model_robust_poverty$coefficients[3], 5),
+            "% increase in the percentage of population living below",
+            "two times the federal poverty level."))
+```
+
+The estimated coefficient on PM2.5 decreased because more of the model is explained by the poverty explanatory term. 
+
+
+### (g) From the regression in (f), test the null hypothesis that the effect of PM2.5 is equal to the effect of Poverty.
+
+
 
 
 

@@ -183,13 +183,13 @@ $H_A: PM2.5 != Poverty$
 
 ```{r}
 model_hyp_test <- linearHypothesis(model = model_robust_poverty,
-                             c("pm2_5 - poverty = 0"),
-                             white.adjust = "hc2")
+                                   c("pm2_5 - poverty = 0"),
+                                   white.adjust = "hc2")
 
 p <- model_hyp_test$`Pr(>Chisq)`[2]
 ```
 
-Because the p-value is `r p`, we reject the null hypothesis and accept the alternative: the effect of PM2.5 is NOT equal to the effect of Poverty.
+Because the p-value of `r p` <<< 0.05, we reject the null hypothesis and accept the alternative: the effect of PM2.5 is NOT equal to the effect of Poverty.
 
 
 

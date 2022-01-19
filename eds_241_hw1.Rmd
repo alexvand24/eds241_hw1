@@ -57,6 +57,18 @@ print(paste((round(avg_pm2_5, 2)), "micrograms per cubic meter"))
 ### (b) What county has the highest level of poverty in California?
 
 ```{r}
+# using the average of all census tracts within that particular county
+high_poverty <- data %>% group_by(california_county) %>%
+                         summarize(mean_poverty = mean(poverty, na.rm = TRUE))
+
+county_high_poverty <- high_poverty %>% filter(mean_poverty == max(mean_poverty))
+                                        
+county_high_poverty[[1]]
+```
+
+
+```{r}
+# county with highest poverty in any single census tract
 high_poverty <- data$california_county[which.max(data$poverty)]
 
 print(high_poverty)

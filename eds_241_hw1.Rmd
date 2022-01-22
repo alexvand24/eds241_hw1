@@ -1,6 +1,6 @@
 ---
-title: "EDS241: Assignment 1"
-author: "Alex Vand"
+title: "EDS 241: Assignment 1"
+author: "Alexandra Yousefivand"
 date: '`r format(Sys.time(), "%m/%d/%Y")`'
 output: 
   pdf_document:
@@ -43,7 +43,7 @@ data <- data_raw %>%
 
 
 
-### (a) What is the average concentration of PM2.5 across all census tracts in California?
+# (a) What is the average concentration of PM2.5 across all census tracts in California?
 
 ```{r}
 avg_pm2_5 <- mean(data$pm2_5, na.rm = TRUE)
@@ -51,10 +51,8 @@ avg_pm2_5 <- mean(data$pm2_5, na.rm = TRUE)
 print(paste((round(avg_pm2_5, 2)), "micrograms per cubic meter"))
 ```
 
-\noindent The average concentration of PM2.5 across all census tracts in California is `r avg_pm2_5` micrograms per cubic meter.
 
-
-### (b) What county has the highest level of poverty in California?
+# (b) What county has the highest level of poverty in California?
 
 ```{r}
 # using the average of all census tracts within that particular county
@@ -67,15 +65,7 @@ county_high_poverty[[1]]
 ```
 
 
-```{r}
-# county with highest poverty in any single census tract
-high_poverty <- data$california_county[which.max(data$poverty)]
-
-print(high_poverty)
-```
-
-
-### (c) Make a histogram depicting the distribution of percent low birth weight and PM2.5.
+# (c) Make a histogram depicting the distribution of percent low birth weight and PM2.5.
 
 ```{r}
 ggplot(data = data, mapping = aes(x = low_birth_weight)) +
@@ -88,80 +78,25 @@ ggplot(data = data, mapping = aes(x = pm2_5)) +
 ```
 
 
-### (d) Estimate a OLS regression of LowBirthWeight on PM25. Report the estimated slope
-coefficient and its heteroskedasticity-robust standard error. Interpret the estimated slope
-coefficient. Is the effect of PM25 on LowBirthWeight statistically significant at the 5%?
+# (d) Estimate a OLS regression of LowBirthWeight on PM25. Report the estimated slope coefficient and its heteroskedasticity-robust standard error. Interpret the estimated slope coefficient. Is the effect of PM25 on LowBirthWeight statistically significant at the 5%?
 
-```{r}
-# compare lm to lm_robust
-
-model <- lm(formula = low_birth_weight ~ pm2_5, data = data)
-model
-```
 
 ```{r}
 model_robust <- lm_robust(formula = low_birth_weight ~ pm2_5, data = data)
 summary(model_robust)
 ```
 
-```{r}
-print(paste0("For every microgram per cubic meter increase in concentration of PM2.5, ", 
-            "low birth rate increases by ",
-            round(model_robust$coefficients[2], 4),
-            "%. And yes, the effect of PM2.5 on LowBirthWeight is ",
-            "statistically significant at the 5% level, ",
-            "since the p-value ",
-            round(model_robust$p.value[2], 4),
-            " <<< 0.05."))
-```
+Slope coefficient = `r round(model_robust$coefficients[2], 4)`
 
-\no indent For every microgram per cubic meter increase in concentration of PM2.5, low birth rate increases by `r model_robust$coefficients[2]`%. Yes; the effect of PM2.5 on LowBirthWeight is statistically significant at the 5% level, since the p-value `r model_robust$p.value[2]` <<< 0.05.
+Heteroskedasticity-robust standard error = `r model_robust$std.error[2]`
 
+Slope coefficient interpretation: For every microgram per cubic meter increase in concentration of PM2.5, low birth rate increases by `r round(model_robust$coefficients[2], 4)`%.
 
-### (e) Suppose a new air quality policy is expected to reduce PM2.5 concentration by 2
-micrograms per cubic meters. Predict the new average value of LowBirthWeight and
-derive its 95% confidence interval. Interpret the 95% confidence interval.
-
-```{r}
-# y = m*x + b
-
-# slope = m
-slope <- model_robust$coefficients[2]
-
-# new x
-x <- avg_pm2_5 - 2
-
-# intercept = b
-intercept <- model_robust$coefficients[1]
-
-low_birth_weight <- slope * x + intercept
-```
-
-
-```{r}
-print(paste0("The new average value of LowBirthWeight is ",
-            round(low_birth_weight, 2), "%."))
-```
-
-
-```{r}
-point_est <- low_birth_weight
-
-crit_val <- qt(p = 0.025, df = 7802, lower.tail=FALSE) # degrees of freedom???
-
-n = sum(!is.na(data$low_birth_weight)) # count
-sigma = sd(!is.na(data$low_birth_weight)) # standard deviation
-SE = as.numeric(sigma / sqrt(n)) # standard error
-
-ci_lower <- round(point_est - crit_val*SE, 4)
-ci_upper <- round(point_est + crit_val*SE, 4)
-
-print(paste0("There is a 95% probability that [", ci_lower, ", ", ci_upper, "] contains the new average value of LowBirthWeight."))
-```
+Yes; the effect of PM2.5 on LowBirthWeight is statistically significant at the 5% level, since the p-value `r model_robust$p.value[2]` << 0.05.
 
 
 
-### (f) Add the variable Poverty as an explanatory variable to the regression in (d). Interpret the estimated coefficient on Poverty. What happens to the estimated coefficient on PM25,compared to the regression in (d). Explain.
+# (f) Add the variable Poverty as an explanatory variable to the regression in (d). Interpret the estimated coefficient on Poverty. What happens to the estimated coefficient on PM25,compared to the regression in (d). Explain.
 
 
 ```{r}
@@ -169,39 +104,33 @@ model_robust_poverty <- lm_robust(formula = low_birth_weight ~ pm2_5 + poverty, 
 summary(model_robust_poverty)
 ```
 
-```{r}
-print(paste0("For every 1% increase in population living below ",
-            "two times the federal poverty level, ",
-            "there is a ",
-            round(model_robust_poverty$coefficients[3], 3),
-            "% increase in LowBirthWeight."))
-```
+
+For every 1% increase in population living below two times the federal poverty level, there is a `r round(model_robust_poverty$coefficients[3], 3)`% increase in LowBirthWeight.
 
 ```{r}
 pm2_5 <- as.numeric(model_robust$coefficients[2])
 pm2_5_poverty <- as.numeric(model_robust_poverty$coefficients[2])
 difference <- pm2_5 - pm2_5_poverty
+difference
 ```
 
 
 The estimated coefficient on PM2.5 decreased by `r difference` because more of the model is explained by the poverty explanatory term (omitted variable bias).
 
 
-### (g) From the regression in (f), test the null hypothesis that the effect of PM2.5 is equal to the effect of Poverty.
-
-$H_0: PM2.5 = Poverty$
-$H_A: PM2.5 != Poverty$
+# (g) From the regression in (f), test the null hypothesis that the effect of PM2.5 is equal to the effect of Poverty.
 
 
 ```{r}
 model_hyp_test <- linearHypothesis(model = model_robust_poverty,
-                                   c("pm2_5 - poverty = 0"),
+                                   "pm2_5 = poverty",
                                    white.adjust = "hc2")
 
 p <- model_hyp_test$`Pr(>Chisq)`[2]
+p
 ```
 
-Because the p-value of `r p` <<< 0.05, we reject the null hypothesis and accept the alternative: the effect of PM2.5 is NOT equal to the effect of Poverty.
+Because the p-value of `r p` << 0.05, we reject the null hypothesis and accept the alternative: the effect of PM2.5 is NOT equal to the effect of Poverty.
 
 
 
